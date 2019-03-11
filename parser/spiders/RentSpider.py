@@ -1,22 +1,25 @@
-import scrapy
+import datetime
+import logging
 import re
 
+import scrapy
 import pandas as pd
 
-from olx.utils import handlers
+from olx.parser.utils import handlers
+
+
+logging.basicConfig(level=logging.DEBUG, filename="olx/parser/log/spider.log")
 
 class RentspiderSpider(scrapy.Spider):
     name = 'RentSpider'
     start_urls = ['https://www.olx.ua/nedvizhimost/posutochno-pochasovo/kiev/']
     premium_mapper = {}
 
-
-
     def parse(self, response):
 
         print("processing:", response.url)
-
-        pages_numbers = response.xpath("/html/body/div[2]/div[4]/section/div[3]/div/div[5]/span[@class='item fleft']/a/@href").extract()
+        pages_numbers = response.xpath("/html/body/div[2]/div[4]/section/"
+                                       "div[3]/div/div[5]/span[@class='item fleft']/a/@href").extract()
         pages_numbers = [i.split("=")[1] for i in pages_numbers]
         last_number = pages_numbers[-1]
 
@@ -33,7 +36,6 @@ class RentspiderSpider(scrapy.Spider):
         thumbs = response.css(".thumb").extract()
         mapper = handlers.get_href_to_premium(thumbs)
         self.premium_mapper = {**self.premium_mapper,**mapper}
-        pd.to_pickle(self.premium_mapper, "./data/mapper.pkl")
         try:
             details_links = response.css(".detailsLink ::attr(href)").extract()
             for detail_link in details_links:
@@ -48,8 +50,6 @@ class RentspiderSpider(scrapy.Spider):
             publication_time = response.css('em ::text').extract()[0].strip()
             publication_id = response.css('em ::text').extract()[1].strip()
             publication_id = publication_id.split(":")[1]
-            pub_time = re.findall(r"\d\d:\d\d", publication_time)[0]
-            pub_date = publication_time.split(",")[1]
         except IndexError:
             publication_time = response.css('em ::text').extract()[3].strip()
             publication_id = response.css('em ::text').extract()[4].strip()
@@ -75,19 +75,15 @@ class RentspiderSpider(scrapy.Spider):
         tag_keys = response.css("tr > th ::text").extract()
         tag_text = response.css("tr > .value ::text").extract()
         tag_values = handlers.clean_group_tags(tag_text)
+        tag_dict = {tag_keys[i]:tag_values[i] for i in range(len(tag_keys))}
 
-        if len(tag_keys) == len(tag_values):
-            tag_dict = {tag_keys[i]:tag_values[i] for i in range(len(tag_keys))}
-        else:
-            tag_dict = tag_values
         views = response.css(".pdingtop10 > strong ::text").extract()[0]
         is_premium = self.premium_mapper.get(response.url)
         coords = re.findall(r"[0-9][0-9]\.[0-9][0-9]+", response.text)
         coords = [i for i in coords if len(i) > 6]
         latitude = coords[0]
         longitude = coords[1]
-        print("DEBUG")
-        print(coords)
+
         record = {
             "url":response.url,
             "price":price,
@@ -103,9 +99,10 @@ class RentspiderSpider(scrapy.Spider):
             "images":images,
             "tags":tag_dict,
             "views_count":int(views),
-            "premium": is_premium
+            "premium": is_premium,
+            "parse_time": datetime.datetime.now()
         }
-        #yield  record
+        yield  record
 
         
 

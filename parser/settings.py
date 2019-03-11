@@ -11,11 +11,11 @@
 
 BOT_NAME = 'olx'
 
-SPIDER_MODULES = ['olx.spiders']
-NEWSPIDER_MODULE = 'olx.spiders'
+SPIDER_MODULES = ['olx.parser.spiders']
+NEWSPIDER_MODULE = 'parser.spiders'
 
 FEED_FORMAT = "csv"
-FEED_URI = "data/result.csv"
+FEED_URI = "parser/data/result.csv"
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'olx (+http://www.yourdomain.com)'

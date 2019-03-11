@@ -1,6 +1,5 @@
-import re
-
 from keras.preprocessing.text import  text_to_word_sequence
+
 
 def clean_text(text_list):
 
@@ -8,6 +7,7 @@ def clean_text(text_list):
     text_list = [filter(lambda x: x != "\r", text) for text in text_list]
     text_list = [" ".join(text) for text in text_list]
     return " ".join(text_list)
+
 
 def clean_group_tags(tags_list):
     data = ["".join(filter(lambda x: x not in ["\n", "\t"], item)) for item in tags_list]
@@ -30,6 +30,7 @@ def clean_group_tags(tags_list):
     if len(current_group) > 0:
         group_index.append(current_group)
     return group_index
+
 
 def get_href_to_premium(thumbs):
 
