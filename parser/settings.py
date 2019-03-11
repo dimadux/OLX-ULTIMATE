@@ -15,13 +15,22 @@ SPIDER_MODULES = ['olx.parser.spiders']
 NEWSPIDER_MODULE = 'parser.spiders'
 
 FEED_FORMAT = "csv"
-FEED_URI = "parser/data/result.csv"
+FEED_URI = "olx/parser/data/result.csv"
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'olx (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
+
+
+
+ITEM_PIPELINES = {'olx.db.mongo_handlers.pipeline.MongoDBPipeline': 300}
+
+MONGODB_SERVER = "localhost"
+MONGODB_PORT = 27016
+MONGODB_DB = "olx"
+MONGODB_COLLECTION = "parse_data"
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32

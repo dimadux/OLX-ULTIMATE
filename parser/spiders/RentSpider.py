@@ -26,7 +26,7 @@ class RentspiderSpider(scrapy.Spider):
         if last_number:
             last_number = int(last_number)
             pages_urls = [f"{RentspiderSpider.start_urls[0]}?page={i}" for i in range(1,last_number+1)]
-            for page_url in pages_urls[:1]:
+            for page_url in pages_urls[::-1]:
                 yield scrapy.Request(page_url, callback=self.parse_page)
 
     def parse_page(self, response):
@@ -72,10 +72,12 @@ class RentspiderSpider(scrapy.Spider):
 
         images = response.css(".photo-glow > img ::attr(src)").extract()
 
+        publication_id = publication_id.strip()
         tag_keys = response.css("tr > th ::text").extract()
         tag_text = response.css("tr > .value ::text").extract()
         tag_values = handlers.clean_group_tags(tag_text)
         tag_dict = {tag_keys[i]:tag_values[i] for i in range(len(tag_keys))}
+        tag_dict = {key.replace(".","_"):value for key,value in tag_dict.items()}
 
         views = response.css(".pdingtop10 > strong ::text").extract()[0]
         is_premium = self.premium_mapper.get(response.url)
@@ -85,10 +87,10 @@ class RentspiderSpider(scrapy.Spider):
         longitude = coords[1]
 
         record = {
+            "_id": publication_id,
             "url":response.url,
             "price":price,
             "publication_time":pub_time,
-            "_id":publication_id,
             "title": name,
             "location": {
                 "district":location,
